@@ -1,33 +1,61 @@
 package com.pndev.inventory_manager.controller;
 
+import com.pndev.inventory_manager.dto.AuthRequest;
+import com.pndev.inventory_manager.dto.AuthResponse;
 import com.pndev.inventory_manager.entity.AdminUser;
 import com.pndev.inventory_manager.repository.AdminUserReposiroty;
+import com.pndev.inventory_manager.security.JwtUtil;
 import com.pndev.inventory_manager.service.AdminUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AdminUserService adminUserService;
-
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<AdminUser> register(@RequestBody AdminUser adminUser) {
-        return ResponseEntity.ok(adminUserService.create(adminUser));
+    public ResponseEntity<?> register(@RequestBody AuthRequest request) {
+        if (request.getUsername() == null || request.getPassword() == null) {
+            return ResponseEntity.badRequest().body("Username and password must be provided");
+        }
+
+        try {
+            AdminUser user = AdminUser.builder()
+                    .username(request.getUsername())
+                    .password(request.getPassword())
+                    .role(request.getRole())
+                    .build();
+
+            adminUserService.create(user);
+
+            return ResponseEntity.ok("User registered successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AdminUser> login(@RequestBody AdminUser adminUser) {
-        return adminUserService.findByUsername(adminUser.getUsername())
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.badRequest().build());
+    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData) {
+        String username = loginData.get("username");
+        String password = loginData.get("password");
+        var userOpt = adminUserService.findByUsername(username);
+        if (userOpt.isPresent()) {
+            var user = userOpt.get();
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                String token = jwtUtil.generateToken(username);
+                return ResponseEntity.ok(Map.of("token", token));
+            }
+        }
+        return ResponseEntity.status(401).body("Usuário ou senha inválidos");
     }
 }

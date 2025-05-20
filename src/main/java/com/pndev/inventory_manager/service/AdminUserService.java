@@ -4,6 +4,9 @@ import com.pndev.inventory_manager.entity.AdminUser;
 import com.pndev.inventory_manager.repository.AdminUserReposiroty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -11,7 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class AdminUserService {
+public class AdminUserService implements UserDetailsService {
     private final AdminUserReposiroty adminUserReposiroty;
     private final PasswordEncoder passwordEncoder;
 
@@ -30,5 +33,16 @@ public class AdminUserService {
 
     public List<AdminUser> findAllByRole(String role) {
         return adminUserReposiroty.findAllByRole(role);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return findByUsername(username)
+                .map(user -> org.springframework.security.core.userdetails.User
+                        .withUsername(user.getUsername())
+                        .password(user.getPassword())
+                        .roles(user.getRole().name())
+                        .build())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 }
