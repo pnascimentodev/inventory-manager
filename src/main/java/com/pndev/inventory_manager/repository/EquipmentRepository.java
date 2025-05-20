@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface EquipamentRepository extends JpaRepository<Equipment, Long> {
+public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
     Optional<Equipment> findBySerialNumber(String serialNumber);
 
     Optional<Equipment> findByAssetTag(String assetTag);
