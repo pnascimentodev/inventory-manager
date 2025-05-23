@@ -1,13 +1,10 @@
 package com.pndev.inventory_manager.controller;
 
-import com.pndev.inventory_manager.dto.AuthRequest;
-import com.pndev.inventory_manager.dto.AuthResponse;
+import com.pndev.inventory_manager.dto.auth.AuthRequest;
 import com.pndev.inventory_manager.entity.AdminUser;
-import com.pndev.inventory_manager.repository.AdminUserReposiroty;
 import com.pndev.inventory_manager.security.JwtUtil;
 import com.pndev.inventory_manager.service.AdminUserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;

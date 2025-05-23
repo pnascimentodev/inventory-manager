@@ -1,4 +1,4 @@
-package com.pndev.inventory_manager.dto;
+package com.pndev.inventory_manager.dto.auth;
 
 import com.pndev.inventory_manager.entity.AdminUser;
 
